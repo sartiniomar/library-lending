@@ -10,4 +10,12 @@ public class LoanTestDataBuilder {
         UUID.fromString("55555555-6666-7777-8888-999999999999"),
         java.time.Clock.systemDefaultZone());
   }
+
+  public Loan buildDefaultCheckout() {
+    return Loan.createLent(
+        UUID.fromString("00000000-1111-2222-3333-444444444444"),
+        UUID.fromString("55555555-6666-7777-8888-999999999999"),
+        java.time.Clock.systemDefaultZone(),
+        7);
+  }
 }
