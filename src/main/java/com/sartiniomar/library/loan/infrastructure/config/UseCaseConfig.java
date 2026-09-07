@@ -4,6 +4,7 @@ import com.sartiniomar.library.loan.application.port.in.CancelUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutReserveUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutUseCase;
 import com.sartiniomar.library.loan.application.port.in.ReserveUseCase;
+import com.sartiniomar.library.loan.application.port.in.ReturnUseCase;
 import com.sartiniomar.library.loan.application.port.out.BookInstanceLoanRepository;
 import com.sartiniomar.library.loan.application.port.out.LoanRepository;
 import com.sartiniomar.library.loan.application.port.out.PatronLoanRepository;
@@ -12,10 +13,12 @@ import com.sartiniomar.library.loan.application.usecase.CheckoutReserveUseCaseIm
 import com.sartiniomar.library.loan.application.usecase.CheckoutUseCaseImpl;
 import com.sartiniomar.library.loan.application.usecase.ReserveUseCaseImpl;
 import com.sartiniomar.library.loan.application.service.LoanLimitChecker;
+import com.sartiniomar.library.loan.application.usecase.ReturnUseCaseImpl;
 import com.sartiniomar.library.loan.domain.loan.service.CancelServiceDomain;
 import com.sartiniomar.library.loan.domain.loan.service.CheckoutReserveServiceDomain;
 import com.sartiniomar.library.loan.domain.loan.service.CheckoutServiceDomain;
 import com.sartiniomar.library.loan.domain.loan.service.ReserveServiceDomain;
+import com.sartiniomar.library.loan.domain.loan.service.ReturnServiceDomain;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -79,6 +82,19 @@ public class UseCaseConfig {
     return new CheckoutReserveUseCaseImpl(
         loanRepository,
         patronLoanRepository,
+        bookInstanceLoanRepository,
+        service
+    );
+  }
+
+  @Bean
+  ReturnUseCase returnUseCase(
+      LoanRepository loanRepository,
+      BookInstanceLoanRepository bookInstanceLoanRepository,
+      ReturnServiceDomain service
+  ) {
+    return new ReturnUseCaseImpl(
+        loanRepository,
         bookInstanceLoanRepository,
         service
     );
