@@ -4,6 +4,8 @@ import com.sartiniomar.library.LibraryApplicationTests;
 import com.sartiniomar.library.loan.application.port.in.CancelUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutReserveUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutUseCase;
+import com.sartiniomar.library.loan.application.port.in.GetAllLoansByPatronIdUseCase;
+import com.sartiniomar.library.loan.application.port.in.GetLoanByIdUseCase;
 import com.sartiniomar.library.loan.application.port.in.LoanCommand;
 import com.sartiniomar.library.loan.application.port.in.LoanIdCommand;
 import com.sartiniomar.library.loan.application.port.in.ReserveUseCase;
@@ -23,6 +25,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.times;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -43,6 +47,12 @@ public class LoanControllerTest extends LibraryApplicationTests {
 
   @MockBean
   ReturnUseCase returnUseCase;
+
+  @MockBean
+  GetLoanByIdUseCase getLoanByIdUseCase;
+
+  @MockBean
+  GetAllLoansByPatronIdUseCase getAllLoansByPatronIdUseCase;
 
   private final UUID DEFAULT_PATRON_ID = UUID.fromString("00000000-1111-2222-3333-444444444444");
   private final UUID DEFAULT_BOOK_INSTANCE_ID = UUID.fromString("55555555-6666-7777-8888-999999999999");
@@ -194,6 +204,62 @@ public class LoanControllerTest extends LibraryApplicationTests {
 
     verify(returnUseCase).execute(any(LoanIdCommand.class));
   }
+
+  @Test
+  @SneakyThrows
+  void shouldGetLoanById() {
+    ArgumentCaptor<LoanIdCommand> uuidArgumentCaptor = ArgumentCaptor.forClass(LoanIdCommand.class);
+
+    Loan loan = new LoanTestDataBuilder().buildDefaultCheckout();
+
+    when(getLoanByIdUseCase.execute(uuidArgumentCaptor.capture())).thenReturn(loan);
+
+    mockMvc.perform(get("/loans/{id}", loan.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(loan.getId().toString()))
+        .andExpect(jsonPath("$.patronId").value(loan.getPatronId().toString()))
+        .andExpect(jsonPath("$.bookInstanceId").value(loan.getBookInstanceId().toString()))
+        .andExpect(jsonPath("$.status").value(loan.getStatus().toString()))
+        .andExpect(jsonPath("$.lentAt").value(loan.getLentAt().toString()))
+        .andExpect(jsonPath("$.dueAt").value(loan.getDueAt().toString()));
+
+    assertEquals(loan.getId(), uuidArgumentCaptor.getValue().loanId());
+
+    verify(getLoanByIdUseCase, times(1)).execute(uuidArgumentCaptor.getValue());
+  }
+
+  /*@Test
+  @SneakyThrows
+  void shouldGetAllLoansByPatronId() {
+    ArgumentCaptor<UUID> uuidArgumentCaptor = ArgumentCaptor.forClass(UUID.class);
+    Loan loan1 = new LoanTestDataBuilder().buildDefaultReserve();
+    Loan loan2 = new LoanTestDataBuilder().buildDefaultCheckout();
+
+    when(getAllLoansByPatronIdUseCase.execute(uuidArgumentCaptor.capture()))
+        .thenReturn(java.util.List.of(loan1, loan2));
+
+    mockMvc.perform(get("/loans"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$[0].id").value(loan1.getId().toString()))
+        .andExpect(jsonPath("$[0].patronId").value(loan1.getPatronId().toString()))
+        .andExpect(jsonPath("$[0].bookInstanceId").value(loan1.getBookInstanceId().toString()))
+        .andExpect(jsonPath("$[0].status").value(loan1.getStatus().toString()))
+        .andExpect(jsonPath("$[0].reservedAt").value(loan1.getReservedAt().toString()))
+        .andExpect(jsonPath("$[0].lentAt").value(loan1.getLentAt().toString()))
+        .andExpect(jsonPath("$[0].returnedAt").value(loan1.getReturnedAt().toString()))
+        .andExpect(jsonPath("$[1].id").value(loan2.getId().toString()))
+        .andExpect(jsonPath("$[1].patronId").value(loan2.getPatronId().toString()))
+        .andExpect(jsonPath("$[1].bookInstanceId").value(loan2.getBookInstanceId().toString()))
+        .andExpect(jsonPath("$[1].status").value(loan2.getStatus().toString()))
+        .andExpect(jsonPath("$[1].reservedAt").value(loan2.getReservedAt().toString()))
+        .andExpect(jsonPath("$[1].lentAt").value(loan2.getLentAt().toString()))
+        .andExpect(jsonPath("$[1].returnedAt").value(loan2.getReturnedAt().toString()));
+
+    assertEquals(loan1.getPatronId(), uuidArgumentCaptor.getValue());
+
+    verify(getAllLoansByPatronIdUseCase, times(1)).execute(loan1.getPatronId());
+  }*/
 
   // Estos solo tienen sentido en los test de integración, ya que en los test unitarios no se hace la validación de los ids, sino que se mockea el use case y se lanza la excepción directamente.
   /*@Test
