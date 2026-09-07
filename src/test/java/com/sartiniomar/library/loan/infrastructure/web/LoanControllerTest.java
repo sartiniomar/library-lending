@@ -2,6 +2,7 @@ package com.sartiniomar.library.loan.infrastructure.web;
 
 import com.sartiniomar.library.LibraryApplicationTests;
 import com.sartiniomar.library.loan.application.port.in.CancelUseCase;
+import com.sartiniomar.library.loan.application.port.in.CheckoutReserveUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutUseCase;
 import com.sartiniomar.library.loan.application.port.in.LoanCommand;
 import com.sartiniomar.library.loan.application.port.in.LoanIdCommand;
@@ -35,6 +36,9 @@ public class LoanControllerTest extends LibraryApplicationTests {
   @MockBean
   CheckoutUseCase checkoutUseCase;
 
+  @MockBean
+  CheckoutReserveUseCase checkoutReserveUseCase;
+
   private final UUID DEFAULT_PATRON_ID = UUID.fromString("00000000-1111-2222-3333-444444444444");
   private final UUID DEFAULT_BOOK_INSTANCE_ID = UUID.fromString("55555555-6666-7777-8888-999999999999");
 
@@ -67,11 +71,11 @@ public class LoanControllerTest extends LibraryApplicationTests {
   @Test
   @SneakyThrows
   void shouldCreateLoanCancelResponse() {
-    ArgumentCaptor<LoanIdCommand> createLoanRequestArgumentCaptor = ArgumentCaptor.forClass(LoanIdCommand.class);
+    ArgumentCaptor<LoanIdCommand> loanIdCommandArgumentCaptor = ArgumentCaptor.forClass(LoanIdCommand.class);
 
     Loan loan = new LoanTestDataBuilder().buildDefaultReserve();
     loan.cancelled();
-    when(cancelUseCase.execute(createLoanRequestArgumentCaptor.capture())).thenReturn(loan);
+    when(cancelUseCase.execute(loanIdCommandArgumentCaptor.capture())).thenReturn(loan);
 
     mockMvc.perform(post("/loans/{id}/cancel", loan.getId())
             .contentType(MediaType.APPLICATION_JSON))
@@ -82,7 +86,7 @@ public class LoanControllerTest extends LibraryApplicationTests {
         .andExpect(jsonPath("$.status").value(LoanStatus.CANCELLED.name()))
         .andExpect(jsonPath("$.reservedAt").value(loan.getReservedAt().toString()));
 
-    assertEquals(loan.getId(), createLoanRequestArgumentCaptor.getValue().loanId());
+    assertEquals(loan.getId(), loanIdCommandArgumentCaptor.getValue().loanId());
 
     verify(cancelUseCase).execute(any(LoanIdCommand.class));
   }
@@ -111,6 +115,28 @@ public class LoanControllerTest extends LibraryApplicationTests {
     assertEquals(DEFAULT_BOOK_INSTANCE_ID, createLoanRequestArgumentCaptor.getValue().bookInstanceId());
 
     verify(checkoutUseCase).execute(any(LoanCommand.class));
+  }
+
+  @Test
+  @SneakyThrows
+  void shouldCreateLoanCheckoutReserveResponse() {
+    ArgumentCaptor<LoanIdCommand> loanIdCommandArgumentCaptor = ArgumentCaptor.forClass(LoanIdCommand.class);
+
+    Loan loan = new LoanTestDataBuilder().buildDefaultCheckout();
+    when(checkoutReserveUseCase.execute(loanIdCommandArgumentCaptor.capture())).thenReturn(loan);
+
+    mockMvc.perform(post("/loans/{id}/checkouts", loan.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(loan.getId().toString()))
+        .andExpect(jsonPath("$.patronId").value(loan.getPatronId().toString()))
+        .andExpect(jsonPath("$.bookInstanceId").value(loan.getBookInstanceId().toString()))
+        .andExpect(jsonPath("$.status").value(LoanStatus.LENT.name()))
+        .andExpect(jsonPath("$.lentAt").value(loan.getLentAt().toString()));
+
+    assertEquals(loan.getId(), loanIdCommandArgumentCaptor.getValue().loanId());
+
+    verify(checkoutReserveUseCase).execute(any(LoanIdCommand.class));
   }
 
   // Estos solo tienen sentido en los test de integración, ya que en los test unitarios no se hace la validación de los ids, sino que se mockea el use case y se lanza la excepción directamente.
