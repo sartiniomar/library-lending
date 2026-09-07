@@ -3,6 +3,7 @@ package com.sartiniomar.library.loan.infrastructure.web;
 import com.sartiniomar.library.loan.application.port.in.CancelUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutReserveUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutUseCase;
+import com.sartiniomar.library.loan.application.port.in.GetLoanByIdUseCase;
 import com.sartiniomar.library.loan.application.port.in.LoanCommand;
 import com.sartiniomar.library.loan.application.port.in.LoanIdCommand;
 import com.sartiniomar.library.loan.application.port.in.ReserveUseCase;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +33,7 @@ public class LoanController {
   private final CheckoutUseCase checkoutUseCase;
   private final CheckoutReserveUseCase checkoutReserveUseCase;
   private final ReturnUseCase returnUseCase;
+  private final GetLoanByIdUseCase getLoanByIdUseCase;
   private final LoanMapper loanMapper;
 
   @PostMapping("/reserves")
@@ -58,5 +61,10 @@ public class LoanController {
   @PostMapping("/{loanId}/returns")
   public ResponseEntity<LoanResponse> returnLoan(@PathVariable UUID loanId) {
     return ResponseEntity.ok(loanMapper.loanToLoanResponse(returnUseCase.execute(new LoanIdCommand(loanId))));
+  }
+
+  @GetMapping("/{loanId}")
+  public ResponseEntity<LoanResponse> getLoan(@PathVariable UUID loanId) {
+    return ResponseEntity.ok(loanMapper.loanToLoanResponse(getLoanByIdUseCase.execute(new LoanIdCommand(loanId))));
   }
 }
