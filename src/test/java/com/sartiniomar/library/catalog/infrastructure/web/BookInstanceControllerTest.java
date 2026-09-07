@@ -9,6 +9,7 @@ import com.sartiniomar.library.catalog.application.port.in.bookInstance.GetAllBo
 import com.sartiniomar.library.catalog.application.port.in.bookInstance.GetBookInstanceByIdUseCase;
 import com.sartiniomar.library.catalog.application.port.in.bookInstance.UpdateBookInstanceCommand;
 import com.sartiniomar.library.catalog.application.port.in.bookInstance.UpdateBookInstanceUseCase;
+import com.sartiniomar.library.catalog.domain.book.Book;
 import com.sartiniomar.library.catalog.domain.bookInstance.BookInstance;
 import com.sartiniomar.library.catalog.domain.bookInstance.BookInstanceNotFoundException;
 import com.sartiniomar.library.catalog.domain.bookInstance.BookInstanceStatus;
@@ -85,13 +86,13 @@ public class BookInstanceControllerTest extends LibraryApplicationTests  {
     ArgumentCaptor<CreateBookInstanceCommand> createBookCommandArgumentCaptor = ArgumentCaptor.forClass(CreateBookInstanceCommand.class);
 
     when(createCirculatingBookInstanceUseCase.execute(createBookCommandArgumentCaptor.capture()))
-        .thenThrow(new BookInstanceNotFoundException("Book Instance not found with id: " + id));
+        .thenThrow(new BookInstanceNotFoundException("Book not found with id: " + id));
 
     mockMvc.perform(post("/books/{bookId}/instances/circulating", id)
             .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNotFound())
         .andExpect(jsonPath("$.code").value("404 NOT_FOUND"))
-        .andExpect(jsonPath("$.errors[0].description").value("Book Instance not found with id: " + id));
+        .andExpect(jsonPath("$.errors[0].description").value("Book not found with id: " + id));
 
     assertEquals(id, createBookCommandArgumentCaptor.getValue().bookId());
 
@@ -100,7 +101,7 @@ public class BookInstanceControllerTest extends LibraryApplicationTests  {
 
   @Test
   @SneakyThrows
-  void shouldReturnBadRequestWhenCirculatingBookInstanceIdIsNotValidUuid() {
+  void shouldReturnBadRequestWhenCirculatingBookIdIsNotValidUuid() {
     mockMvc.perform(
             post("/books/{bookId}/instances/circulating", "invalid-uuid"))
         .andExpect(status().isBadRequest())
@@ -134,11 +135,14 @@ public class BookInstanceControllerTest extends LibraryApplicationTests  {
 
   @Test
   @SneakyThrows
-  void shouldReturnNotFoundWhenBookIdNotFoundInRestrictedBookInstanceCreation() {
+  void shouldReturnNotFoundWhenBookIdNotFoundInRestrictedBookCreation() {
     UUID id = UUID.randomUUID();
-    ArgumentCaptor<CreateBookInstanceCommand> createBookCommandArgumentCaptor = ArgumentCaptor.forClass(CreateBookInstanceCommand.class);
+    ArgumentCaptor<CreateBookInstanceCommand> createBookCommandArgumentCaptor =
+        ArgumentCaptor.forClass(CreateBookInstanceCommand.class);
 
-    when(createRestrictedBookInstanceUseCase.execute(createBookCommandArgumentCaptor.capture())).thenThrow(new BookInstanceNotFoundException("Book not found with id: " + id));
+    when(createRestrictedBookInstanceUseCase
+        .execute(createBookCommandArgumentCaptor.capture()))
+        .thenThrow(new BookInstanceNotFoundException("Book not found with id: " + id));
 
     mockMvc.perform(post("/books/{bookId}/instances/restricted", id)
             .contentType(MediaType.APPLICATION_JSON))
@@ -148,17 +152,19 @@ public class BookInstanceControllerTest extends LibraryApplicationTests  {
 
     assertEquals(id, createBookCommandArgumentCaptor.getValue().bookId());
 
-    verify(createRestrictedBookInstanceUseCase, times(1)).execute(createBookCommandArgumentCaptor.getValue());
+    verify(createRestrictedBookInstanceUseCase, times(1))
+        .execute(createBookCommandArgumentCaptor.getValue());
   }
 
   @Test
   @SneakyThrows
-  void shouldReturnBadRequestWhenRestrictedBookInstanceIdIsNotValidUuid() {
+  void shouldReturnBadRequestWhenRestrictedBookIdIsNotValidUuid() {
     mockMvc.perform(
             post("/books/{bookId}/instances/restricted", "invalid-uuid"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.code").value("400 BAD_REQUEST"))
-        .andExpect(jsonPath("$.errors[0].description").value("Parameter 'bookId' with value 'invalid-uuid' could not be converted to type UUID"));
+        .andExpect(jsonPath("$.errors[0].description")
+            .value("Parameter 'bookId' with value 'invalid-uuid' could not be converted to type UUID"));
 
     verify(createRestrictedBookInstanceUseCase, never()).execute(any());
   }
@@ -195,8 +201,9 @@ public class BookInstanceControllerTest extends LibraryApplicationTests  {
   @SneakyThrows
   void shouldReturnBadRequestForInvalidUuidOnUpdate() {
     String bodyRequest = getContentFromFile("catalog/bookInstance/updateBookInstanceRequest.json");
+    Book book = new Book(UUID.randomUUID(), "Test Book", "Test Author", "1234567890");
 
-    mockMvc.perform(put("/books/{id}", "invalid-uuid")
+    mockMvc.perform(put("/books/{bookId}/instances/{id}", book.getId(), "invalid-uuid")
             .contentType(MediaType.APPLICATION_JSON)
             .content(bodyRequest))
         .andExpect(status().isBadRequest())

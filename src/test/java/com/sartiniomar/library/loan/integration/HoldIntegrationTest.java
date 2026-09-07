@@ -2,7 +2,7 @@ package com.sartiniomar.library.loan.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sartiniomar.library.loan.domain.patron.PatronType;
-import com.sartiniomar.library.loan.infrastructure.web.dto.PlaceHoldRequest;
+import com.sartiniomar.library.loan.infrastructure.web.dto.CreateLoanRequest;
 import com.sartiniomar.library.loan.domain.patron.Patron;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,8 +29,8 @@ public class HoldIntegrationTest {
   void shouldReturn404_whenBookDoesNotExist() throws Exception {
     Patron patron = new Patron(UUID.randomUUID(), PatronType.REGULAR);
 
-    PlaceHoldRequest request =
-        new PlaceHoldRequest(UUID.randomUUID(), patron.getId());
+    CreateLoanRequest request =
+        new CreateLoanRequest(UUID.randomUUID(), patron.getId());
 
     mockMvc.perform(post("/hold")
             .contentType(MediaType.APPLICATION_JSON)
