@@ -57,7 +57,11 @@ public class BookInstanceController {
 
   @GetMapping
   public ResponseEntity<List<BookInstanceResponse>> listByBookId(@PathVariable UUID bookId) {
-    return ResponseEntity.ok(getAllBookInstancesByBookIdService.execute(bookId).stream().map(bookInstanceMapper::bookInstanceToBookInstanceResponse).collect(java.util.stream.Collectors.toList()));
+    return ResponseEntity.ok(getAllBookInstancesByBookIdService
+        .execute(bookId)
+        .stream()
+        .map(bookInstanceMapper::bookInstanceToBookInstanceResponse)
+        .collect(java.util.stream.Collectors.toList()));
   }
 
   @GetMapping("/{id}")
