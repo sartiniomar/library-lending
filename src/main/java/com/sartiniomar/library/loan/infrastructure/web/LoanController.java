@@ -1,6 +1,7 @@
 package com.sartiniomar.library.loan.infrastructure.web;
 
 import com.sartiniomar.library.loan.application.port.in.CancelUseCase;
+import com.sartiniomar.library.loan.application.port.in.CheckoutReserveUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutUseCase;
 import com.sartiniomar.library.loan.application.port.in.LoanCommand;
 import com.sartiniomar.library.loan.application.port.in.LoanIdCommand;
@@ -27,6 +28,7 @@ public class LoanController {
   private final ReserveUseCase reserveUseCase;
   private final CancelUseCase cancelUseCase;
   private final CheckoutUseCase checkoutUseCase;
+  private final CheckoutReserveUseCase checkoutReserveUseCase;
   private final LoanMapper loanMapper;
 
   @PostMapping("/reserves")
@@ -44,5 +46,10 @@ public class LoanController {
   public ResponseEntity<LoanResponse> checkout(@Valid @RequestBody CreateLoanRequest request) {
     LoanCommand command = loanMapper.createLoanRequestToLoanCommand(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(loanMapper.loanToLoanResponse(checkoutUseCase.execute(command)));
+  }
+
+  @PostMapping("/{loanId}/checkouts")
+  public ResponseEntity<LoanResponse> checkoutReserve(@PathVariable UUID loanId) {
+    return ResponseEntity.ok(loanMapper.loanToLoanResponse(checkoutReserveUseCase.execute(new LoanIdCommand(loanId))));
   }
 }
