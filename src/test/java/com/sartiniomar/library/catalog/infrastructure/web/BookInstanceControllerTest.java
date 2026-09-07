@@ -292,10 +292,11 @@ public class BookInstanceControllerTest extends LibraryApplicationTests  {
   @Test
   @SneakyThrows
   void shouldGetAllBookInstancesByBookId() {
+    ArgumentCaptor<UUID> uuidArgumentCaptor = ArgumentCaptor.forClass(UUID.class);
     BookInstance bookInstance1 = new BookInstanceTestDataBuilder().buildCirculatingDefault();
     BookInstance bookInstance2 = new BookInstanceTestDataBuilder().buildCirculatingDefault();
 
-    when(getAllBookInstancesByBookIdUseCase.execute(bookInstance1.getBookId()))
+    when(getAllBookInstancesByBookIdUseCase.execute(uuidArgumentCaptor.capture()))
         .thenReturn(java.util.List.of(bookInstance1, bookInstance2));
 
     mockMvc.perform(get("/books/" + bookInstance1.getBookId() + "/instances"))
@@ -308,6 +309,8 @@ public class BookInstanceControllerTest extends LibraryApplicationTests  {
         .andExpect(jsonPath("$[1].bookId").value(bookInstance2.getBookId().toString()))
         .andExpect(jsonPath("$[1].type").value(bookInstance2.getType().toString()))
         .andExpect(jsonPath("$[1].status").value(BookInstanceStatus.AVAILABLE.toString()));
+
+    assertEquals(bookInstance1.getBookId(), uuidArgumentCaptor.getValue());
 
     verify(getAllBookInstancesByBookIdUseCase, times(1)).execute(bookInstance1.getBookId());
   }
