@@ -6,6 +6,7 @@ import com.sartiniomar.library.loan.application.port.in.CheckoutUseCase;
 import com.sartiniomar.library.loan.application.port.in.LoanCommand;
 import com.sartiniomar.library.loan.application.port.in.LoanIdCommand;
 import com.sartiniomar.library.loan.application.port.in.ReserveUseCase;
+import com.sartiniomar.library.loan.application.port.in.ReturnUseCase;
 import com.sartiniomar.library.loan.infrastructure.mapper.LoanMapper;
 import com.sartiniomar.library.loan.infrastructure.web.dto.LoanResponse;
 import com.sartiniomar.library.loan.infrastructure.web.dto.CreateLoanRequest;
@@ -29,6 +30,7 @@ public class LoanController {
   private final CancelUseCase cancelUseCase;
   private final CheckoutUseCase checkoutUseCase;
   private final CheckoutReserveUseCase checkoutReserveUseCase;
+  private final ReturnUseCase returnUseCase;
   private final LoanMapper loanMapper;
 
   @PostMapping("/reserves")
@@ -51,5 +53,10 @@ public class LoanController {
   @PostMapping("/{loanId}/checkouts")
   public ResponseEntity<LoanResponse> checkoutReserve(@PathVariable UUID loanId) {
     return ResponseEntity.ok(loanMapper.loanToLoanResponse(checkoutReserveUseCase.execute(new LoanIdCommand(loanId))));
+  }
+
+  @PostMapping("/{loanId}/returns")
+  public ResponseEntity<LoanResponse> returnLoan(@PathVariable UUID loanId) {
+    return ResponseEntity.ok(loanMapper.loanToLoanResponse(returnUseCase.execute(new LoanIdCommand(loanId))));
   }
 }
