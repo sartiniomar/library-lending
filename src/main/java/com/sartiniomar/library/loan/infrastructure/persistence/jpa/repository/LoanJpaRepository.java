@@ -19,4 +19,6 @@ public interface LoanJpaRepository extends JpaRepository<LoanEntity, UUID>  {
       @Param("patronId") UUID patronId,
       @Param("statuses") List<LoanStatus> statuses
   );
+
+  List<LoanEntity> findAllByPatronId(UUID patronId);
 }

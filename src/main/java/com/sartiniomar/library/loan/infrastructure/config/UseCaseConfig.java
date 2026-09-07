@@ -3,6 +3,7 @@ package com.sartiniomar.library.loan.infrastructure.config;
 import com.sartiniomar.library.loan.application.port.in.CancelUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutReserveUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutUseCase;
+import com.sartiniomar.library.loan.application.port.in.GetAllLoansByPatronIdUseCase;
 import com.sartiniomar.library.loan.application.port.in.GetLoanByIdUseCase;
 import com.sartiniomar.library.loan.application.port.in.ReserveUseCase;
 import com.sartiniomar.library.loan.application.port.in.ReturnUseCase;
@@ -12,6 +13,7 @@ import com.sartiniomar.library.loan.application.port.out.PatronLoanRepository;
 import com.sartiniomar.library.loan.application.usecase.CancelUseCaseImpl;
 import com.sartiniomar.library.loan.application.usecase.CheckoutReserveUseCaseImpl;
 import com.sartiniomar.library.loan.application.usecase.CheckoutUseCaseImpl;
+import com.sartiniomar.library.loan.application.usecase.GetAllLoansByPatronIdUseCaseImpl;
 import com.sartiniomar.library.loan.application.usecase.GetLoanByIdUseCaseImpl;
 import com.sartiniomar.library.loan.application.usecase.ReserveUseCaseImpl;
 import com.sartiniomar.library.loan.application.service.LoanLimitChecker;
@@ -104,5 +106,10 @@ public class UseCaseConfig {
   @Bean
   GetLoanByIdUseCase getLoanByIdUseCase(LoanRepository loanRepository) {
     return new GetLoanByIdUseCaseImpl(loanRepository);
+  }
+
+  @Bean
+  GetAllLoansByPatronIdUseCase getAllLoansByPatronIdUseCase(LoanRepository loanRepository) {
+    return new GetAllLoansByPatronIdUseCaseImpl(loanRepository);
   }
 }
