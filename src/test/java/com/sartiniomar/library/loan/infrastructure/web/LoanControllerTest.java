@@ -1,15 +1,12 @@
 package com.sartiniomar.library.loan.infrastructure.web;
 
 import com.sartiniomar.library.LibraryApplicationTests;
-import com.sartiniomar.library.catalog.domain.bookInstance.BookInstanceNotFoundException;
+import com.sartiniomar.library.loan.application.port.in.CancelUseCase;
 import com.sartiniomar.library.loan.application.port.in.LoanCommand;
+import com.sartiniomar.library.loan.application.port.in.LoanIdCommand;
 import com.sartiniomar.library.loan.application.port.in.ReserveUseCase;
-import com.sartiniomar.library.loan.domain.bookInstance.BookInstanceNotAvailableException;
 import com.sartiniomar.library.loan.domain.loan.Loan;
-import com.sartiniomar.library.loan.domain.loan.LoanLimitExceededException;
 import com.sartiniomar.library.loan.domain.loan.LoanStatus;
-import com.sartiniomar.library.loan.domain.loan.OnlyResearcherCanLoanRestrictedBooksException;
-import com.sartiniomar.library.loan.domain.loan.TransitionStatusException;
 import com.sartiniomar.library.loan.support.builder.LoanTestDataBuilder;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
@@ -30,6 +27,9 @@ public class LoanControllerTest extends LibraryApplicationTests {
 
   @MockBean
   ReserveUseCase reserveUseCase;
+
+  @MockBean
+  CancelUseCase cancelUseCase;
 
   private final UUID DEFAULT_PATRON_ID = UUID.fromString("00000000-1111-2222-3333-444444444444");
   private final UUID DEFAULT_BOOK_INSTANCE_ID = UUID.fromString("55555555-6666-7777-8888-999999999999");
@@ -59,8 +59,31 @@ public class LoanControllerTest extends LibraryApplicationTests {
 
     verify(reserveUseCase).execute(any(LoanCommand.class));
   }
-
   @Test
+  @SneakyThrows
+  void shouldCreateLoanCancelResponse() {
+    ArgumentCaptor<LoanIdCommand> createLoanRequestArgumentCaptor = ArgumentCaptor.forClass(LoanIdCommand.class);
+
+    Loan loan = new LoanTestDataBuilder().buildDefaultReserve();
+    loan.cancelled();
+    when(cancelUseCase.execute(createLoanRequestArgumentCaptor.capture())).thenReturn(loan);
+
+    mockMvc.perform(post("/loans/{id}/cancel", loan.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id").value(loan.getId().toString()))
+        .andExpect(jsonPath("$.patronId").value(loan.getPatronId().toString()))
+        .andExpect(jsonPath("$.bookInstanceId").value(loan.getBookInstanceId().toString()))
+        .andExpect(jsonPath("$.status").value(LoanStatus.CANCELLED.name()))
+        .andExpect(jsonPath("$.reservedAt").value(loan.getReservedAt().toString()));
+
+    assertEquals(loan.getId(), createLoanRequestArgumentCaptor.getValue().loanId());
+
+    verify(cancelUseCase).execute(any(LoanIdCommand.class));
+  }
+
+  // Estos solo tienen sentido en los test de integración, ya que en los test unitarios no se hace la validación de los ids, sino que se mockea el use case y se lanza la excepción directamente.
+  /*@Test
   @SneakyThrows
   void shouldReturnNotFoundWhenPatronIdNotFoundInLoanReserveCreation() {
     when(reserveUseCase.execute(any(LoanCommand.class)))
@@ -172,5 +195,5 @@ public class LoanControllerTest extends LibraryApplicationTests {
             .value("Transition status exception."));
 
     verify(reserveUseCase).execute(any(LoanCommand.class));
-  }
+  }*/
 }

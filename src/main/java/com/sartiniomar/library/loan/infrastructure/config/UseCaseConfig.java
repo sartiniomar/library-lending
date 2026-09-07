@@ -1,13 +1,16 @@
 package com.sartiniomar.library.loan.infrastructure.config;
 
+import com.sartiniomar.library.loan.application.port.in.CancelUseCase;
 import com.sartiniomar.library.loan.application.port.in.CheckoutUseCase;
 import com.sartiniomar.library.loan.application.port.in.ReserveUseCase;
 import com.sartiniomar.library.loan.application.port.out.BookInstanceLoanRepository;
 import com.sartiniomar.library.loan.application.port.out.LoanRepository;
 import com.sartiniomar.library.loan.application.port.out.PatronLoanRepository;
+import com.sartiniomar.library.loan.application.usecase.CancelUseCaseImpl;
 import com.sartiniomar.library.loan.application.usecase.CheckoutUseCaseImpl;
 import com.sartiniomar.library.loan.application.usecase.ReserveUseCaseImpl;
 import com.sartiniomar.library.loan.application.service.LoanLimitChecker;
+import com.sartiniomar.library.loan.domain.loan.service.CancelServiceDomain;
 import com.sartiniomar.library.loan.domain.loan.service.CheckoutServiceDomain;
 import com.sartiniomar.library.loan.domain.loan.service.ReserveServiceDomain;
 import org.springframework.context.annotation.Bean;
@@ -30,6 +33,19 @@ public class UseCaseConfig {
         loanRepository,
         service,
         validationsUtil
+    );
+  }
+
+  @Bean
+  CancelUseCase cancelUseCase(
+      CancelServiceDomain cancelServiceDomain,
+      LoanRepository loanRepository,
+      BookInstanceLoanRepository bookInstanceLoanRepository
+  ) {
+    return new CancelUseCaseImpl(
+        cancelServiceDomain,
+        loanRepository,
+        bookInstanceLoanRepository
     );
   }
 
