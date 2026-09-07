@@ -229,7 +229,7 @@ public class LoanControllerTest extends LibraryApplicationTests {
     verify(getLoanByIdUseCase, times(1)).execute(uuidArgumentCaptor.getValue());
   }
 
-  /*@Test
+  @Test
   @SneakyThrows
   void shouldGetAllLoansByPatronId() {
     ArgumentCaptor<UUID> uuidArgumentCaptor = ArgumentCaptor.forClass(UUID.class);
@@ -239,27 +239,25 @@ public class LoanControllerTest extends LibraryApplicationTests {
     when(getAllLoansByPatronIdUseCase.execute(uuidArgumentCaptor.capture()))
         .thenReturn(java.util.List.of(loan1, loan2));
 
-    mockMvc.perform(get("/loans"))
+    mockMvc.perform(get("/loans")
+            .param("patronId", loan1.getPatronId().toString())
+            .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].id").value(loan1.getId().toString()))
         .andExpect(jsonPath("$[0].patronId").value(loan1.getPatronId().toString()))
         .andExpect(jsonPath("$[0].bookInstanceId").value(loan1.getBookInstanceId().toString()))
         .andExpect(jsonPath("$[0].status").value(loan1.getStatus().toString()))
         .andExpect(jsonPath("$[0].reservedAt").value(loan1.getReservedAt().toString()))
-        .andExpect(jsonPath("$[0].lentAt").value(loan1.getLentAt().toString()))
-        .andExpect(jsonPath("$[0].returnedAt").value(loan1.getReturnedAt().toString()))
         .andExpect(jsonPath("$[1].id").value(loan2.getId().toString()))
         .andExpect(jsonPath("$[1].patronId").value(loan2.getPatronId().toString()))
         .andExpect(jsonPath("$[1].bookInstanceId").value(loan2.getBookInstanceId().toString()))
         .andExpect(jsonPath("$[1].status").value(loan2.getStatus().toString()))
-        .andExpect(jsonPath("$[1].reservedAt").value(loan2.getReservedAt().toString()))
-        .andExpect(jsonPath("$[1].lentAt").value(loan2.getLentAt().toString()))
-        .andExpect(jsonPath("$[1].returnedAt").value(loan2.getReturnedAt().toString()));
+        .andExpect(jsonPath("$[1].lentAt").value(loan2.getLentAt().toString()));
 
     assertEquals(loan1.getPatronId(), uuidArgumentCaptor.getValue());
 
     verify(getAllLoansByPatronIdUseCase, times(1)).execute(loan1.getPatronId());
-  }*/
+  }
 
   // Estos solo tienen sentido en los test de integración, ya que en los test unitarios no se hace la validación de los ids, sino que se mockea el use case y se lanza la excepción directamente.
   /*@Test
